@@ -31,13 +31,13 @@ public class ClickableObject : MonoBehaviour
                 message = "A faded photograph lies inside, barely visible.";
                 break;
             case "BigDrawer3":
-                message = "Nothing but old clothes. Nothing useful here.";
+                message = "Nothing but old clothes.\nNothing useful here.";
                 break;
             case "BigDrawer4":
                 message = "A locked drawer. You'll need a key.";
                 break;
             case "BigDrawer5":
-                message = "Loose papers rustle. One has something scribbled in red ink.";
+                message = "Loose papers rustle.\nOne has something scribbled in red ink.";
                 break;
             case "BigDrawer6":
                 message = "This drawer would not budge. It is stuck.";
@@ -48,19 +48,19 @@ public class ClickableObject : MonoBehaviour
             case "Door":
                 message = "You slowly reach for the handle...";
                 DialogueManager.Instance.ShowMessage(message);
-                StartCoroutine(LoadSceneAfterDialogue("NextSceneName")); // Replace with actual name
+                StartCoroutine(LoadSceneAfterDialogue("KitchenScene")); // Replace with actual name
                 return;
             case "Cabinet":
-                message = "You open the cabinet. Rows of strange bottles line the shelves.";
+                message = "You open the cabinet.\nRows of strange bottles line the shelves.";
                 break;
             case "UnderBed":
                 message = "Something glints under the bed, just out of reach.";
                 break;
             case "Desk":
-                message = "The desk is cluttered. A diary lies open to a torn page.";
+                message = "The desk is cluttered.\nA diary lies open to a torn page.";
                 break;
             case "Painting":
-                message = "Behind the painting, there’s a small hole in the wall. Something’s inside.";
+                message = "Behind the painting, there’s a small hole in the wall.\nSomething’s inside.";
                 break;
             default:
                 message = messageToDisplay; // Fallback from Inspector if no match
