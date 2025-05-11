@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\DummyScript.cs" />
+    <Compile Include="Assets\Scripts\ItemGiver.cs" />
     <Compile Include="Assets\Scripts\ClickableObject.cs" />
     <Compile Include="Assets\Scripts\DialogueManager.cs" />
   </ItemGroup>

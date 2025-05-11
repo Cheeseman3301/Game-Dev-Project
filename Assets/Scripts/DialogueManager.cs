@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -10,10 +11,18 @@ public class DialogueManager : MonoBehaviour
     public TMP_Text dialogueText;
     public float typingSpeed = 0.03f;
 
+    // New Item UI panel
+    public GameObject itemPanel;  // New panel for displaying item received
+    public TMP_Text itemReceivedText;  // Text to show item name
+    public Image itemReceivedImage;    // Image to show item icon
+
     private string[] dialogueLines;
     private int currentLineIndex;
     private bool isTyping = false;
     private bool lineFullyDisplayed = false;
+
+    private string[] inventory = new string[5];  // Inventory to hold up to 5 items
+    private int currentInventoryIndex = 0;
 
     public bool IsDialogueActive => dialoguePanel.activeSelf;
     public bool IsTyping => isTyping;
@@ -25,10 +34,15 @@ public class DialogueManager : MonoBehaviour
         else
             Destroy(gameObject);
 
-         // Ensure dialogue panel is hidden at startup
-        if (dialoguePanel != null) {
+        // Ensure dialogue panel and item panel are hidden at startup
+        if (dialoguePanel != null)
+        {
             dialoguePanel.SetActive(false);
-        }       
+        }
+        if (itemPanel != null)
+        {
+            itemPanel.SetActive(false);  // Make sure the item panel starts inactive
+        }
     }
 
     void Update()
@@ -91,9 +105,59 @@ public class DialogueManager : MonoBehaviour
             dialogueText.text += c;
             yield return new WaitForSeconds(typingSpeed);
         }
-        
+
+        // Add continue indicator after typing finishes
+        dialogueText.text += " ...";
+
         Debug.Log("Finished typing line.");
         isTyping = false;
         lineFullyDisplayed = true;
+    }
+
+    // Function to handle item collection
+    public void CollectItem(string itemName)
+    {
+        if (currentInventoryIndex < 5)
+        {
+            // Add item to inventory
+            inventory[currentInventoryIndex] = itemName;
+            currentInventoryIndex++;
+
+            // Display item received message in the new panel
+            DisplayItemReceived(itemName);
+        }
+        else
+        {
+            Debug.Log("Inventory full! Cannot collect more items.");
+        }
+    }
+
+    // Display item received in the new item panel
+    private void DisplayItemReceived(string itemName)
+    {
+        // Make sure itemPanel is active
+        itemPanel.SetActive(true);
+        itemReceivedText.text = $"{itemName} received"; // Display item name
+
+        // Load the image dynamically based on itemName from the Resources folder
+        Sprite itemImage = Resources.Load<Sprite>(itemName); // Load sprite with the same name as itemName
+        if (itemImage != null)
+        {
+            itemReceivedImage.sprite = itemImage; // Display item image
+        }
+        else
+        {
+            Debug.LogWarning("Item image not found for: " + itemName);
+        }
+
+        // Optionally hide the itemPanel after a short time
+        StartCoroutine(HideItemPanel());
+    }
+
+    // Hide itemPanel after a brief delay
+    private IEnumerator HideItemPanel()
+    {
+        yield return new WaitForSeconds(2f); // Keep it on screen for 2 seconds
+        itemPanel.SetActive(false);
     }
 }
