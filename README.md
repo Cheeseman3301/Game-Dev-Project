@@ -1,0 +1,2 @@
+Game World & Environment
+The game consists of three unique crime scenes, each crucial to the investigation. These could be a dimly lit apartment where Diana was last seen, a deserted alley with signs of struggle, or an abandoned warehouse where the killer may have left a clue. The game’s atmosphere will be immersive, with dark tones, tense background music, and subtle horror elements to enhance the thriller experience.
