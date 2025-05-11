@@ -1,72 +1,94 @@
-using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
+using UnityEngine;
 using TMPro;
 
 public class DialogueManager : MonoBehaviour
 {
     public static DialogueManager Instance;
 
-    public TextMeshProUGUI dialogueText;         // Assign via Inspector
-    public GameObject dialogueBox;    // Parent panel for dialogue UI
+    public GameObject dialoguePanel;
+    public TMP_Text dialogueText;
+    public float typingSpeed = 0.03f;
 
-    private bool isDisplaying = false;
+    private string[] dialogueLines;
+    private int currentLineIndex;
+    private bool isTyping = false;
+    private bool lineFullyDisplayed = false;
 
-    private void Awake()
+    public bool IsDialogueActive => dialoguePanel.activeSelf;
+    public bool IsTyping => isTyping;
+
+    void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+    }
+
+    void Update()
+    {
+        if (dialoguePanel.activeSelf && Input.GetMouseButtonDown(0))
+        {
+            Debug.Log("Mouse Clicked - Dialogue Active");
+
+            if (!isTyping && lineFullyDisplayed)
+            {
+                Debug.Log("Line fully displayed - Showing next line");
+                ShowNextLine();
+            }
+        }
     }
 
     public void ShowMessage(string message)
     {
-        StopAllCoroutines(); // Cancel any existing message
-        StartCoroutine(DisplayMessageRoutine(message));
-    }
+        Debug.Log("Showing new message: " + message);
 
-    private IEnumerator DisplayMessageRoutine(string message)
-    {
-        isDisplaying = true;
-        dialogueBox.SetActive(true);
-        dialogueText.text = message;
-
-        // Wait until player clicks
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
-
-        dialogueBox.SetActive(false);
-        isDisplaying = false;
-    }
-
-    public bool IsDialogueActive()
-    {
-        return isDisplaying;
-    }
-
-    public void HideDialogue()
-    {
-        if (isDisplaying)
+        if (string.IsNullOrEmpty(message))
         {
-            StopAllCoroutines();
-            dialogueBox.SetActive(false);
-            isDisplaying = false;
+            Debug.LogWarning("Message is empty or null.");
+            return;
+        }
+
+        dialoguePanel.SetActive(true);
+        dialogueLines = message.Split('\n');
+        currentLineIndex = 0;
+        ShowNextLine();
+    }
+
+    void ShowNextLine()
+    {
+        Debug.Log("Showing next line. Current line index: " + currentLineIndex);
+
+        if (currentLineIndex < dialogueLines.Length)
+        {
+            string lineToType = dialogueLines[currentLineIndex];
+            Debug.Log("Next line available: " + lineToType);
+            StartCoroutine(TypeText(lineToType));
+            currentLineIndex++;
+        }
+        else
+        {
+            Debug.Log("End of dialogue reached. Hiding panel.");
+            dialoguePanel.SetActive(false);
         }
     }
 
-    public void ShowDialogue()
+    IEnumerator TypeText(string line)
     {
-        if (!isDisplaying)
+        Debug.Log("Typing line: " + line);
+        dialogueText.text = "";
+        isTyping = true;
+        lineFullyDisplayed = false;
+
+        foreach (char c in line)
         {
-            dialogueBox.SetActive(true);
-            isDisplaying = true;
+            dialogueText.text += c;
+            yield return new WaitForSeconds(typingSpeed);
         }
+
+        Debug.Log("Finished typing line.");
+        isTyping = false;
+        lineFullyDisplayed = true;
     }
-
-    public void SetDialogueText(string text)
-    {
-        dialogueText.text = text;
-    }
-
-    
-
-
 }
