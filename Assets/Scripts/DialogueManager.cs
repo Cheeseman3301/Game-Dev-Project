@@ -11,21 +11,26 @@ public class DialogueManager : MonoBehaviour
     public TMP_Text dialogueText;
     public float typingSpeed = 0.03f;
 
-    // New Item UI panel
-    public GameObject itemPanel;  // New panel for displaying item received
-    public TMP_Text itemReceivedText;  // Text to show item name
-    public Image itemReceivedImage;    // Image to show item icon
+    public GameObject itemPanel;
+    public TMP_Text itemReceivedText;
+    public Image itemReceivedImage;
 
     private string[] dialogueLines;
     private int currentLineIndex;
     private bool isTyping = false;
     private bool lineFullyDisplayed = false;
 
-    private string[] inventory = new string[5];  // Inventory to hold up to 5 items
+    private string[] inventory = new string[5];
     private int currentInventoryIndex = 0;
+
+    // Queuing system
+    private string queuedMessage = null;
+    private bool hasQueuedMessage = false;
 
     public bool IsDialogueActive => dialoguePanel.activeSelf;
     public bool IsTyping => isTyping;
+    public bool IsItemPanelActive => itemPanel != null && itemPanel.activeSelf;
+    public bool AnyPanelActive => IsDialogueActive || IsItemPanelActive;
 
     void Awake()
     {
@@ -34,38 +39,37 @@ public class DialogueManager : MonoBehaviour
         else
             Destroy(gameObject);
 
-        // Ensure dialogue panel and item panel are hidden at startup
         if (dialoguePanel != null)
-        {
             dialoguePanel.SetActive(false);
-        }
+
         if (itemPanel != null)
-        {
-            itemPanel.SetActive(false);  // Make sure the item panel starts inactive
-        }
+            itemPanel.SetActive(false);
     }
 
     void Update()
     {
-        if (dialoguePanel.activeSelf && Input.GetMouseButtonDown(0))
+        // Prevent advancing dialogue while item panel is active
+        if (!IsItemPanelActive && dialoguePanel.activeSelf && Input.GetMouseButtonDown(0))
         {
-            Debug.Log("Mouse Clicked - Dialogue Active");
-
             if (!isTyping && lineFullyDisplayed)
-            {
-                Debug.Log("Line fully displayed - Showing next line");
                 ShowNextLine();
-            }
         }
     }
 
     public void ShowMessage(string message)
     {
-        Debug.Log("Showing new message: " + message);
-
         if (string.IsNullOrEmpty(message))
         {
             Debug.LogWarning("Message is empty or null.");
+            return;
+        }
+
+        // If another panel is active, queue the message
+        if (AnyPanelActive)
+        {
+            Debug.Log("Panel busy — queuing message: " + message);
+            queuedMessage = message;
+            hasQueuedMessage = true;
             return;
         }
 
@@ -77,54 +81,67 @@ public class DialogueManager : MonoBehaviour
 
     void ShowNextLine()
     {
-        Debug.Log("Showing next line. Current line index: " + currentLineIndex);
-
         if (currentLineIndex < dialogueLines.Length)
         {
             string lineToType = dialogueLines[currentLineIndex];
-            Debug.Log("Next line available: " + lineToType);
             StartCoroutine(TypeText(lineToType));
             currentLineIndex++;
         }
         else
         {
-            Debug.Log("End of dialogue reached. Hiding panel.");
             dialoguePanel.SetActive(false);
+
+            // After dialogue ends, check if there’s a queued message
+            if (hasQueuedMessage && !AnyPanelActive)
+            {
+                string messageToShow = queuedMessage;
+                queuedMessage = null;
+                hasQueuedMessage = false;
+                ShowMessage(messageToShow);
+            }
         }
     }
 
     IEnumerator TypeText(string line)
     {
-        Debug.Log("Typing line: " + line);
         dialogueText.text = "";
         isTyping = true;
         lineFullyDisplayed = false;
 
+        // Stabilize layout
+        dialogueText.text = " ";
+        dialogueText.ForceMeshUpdate();
+        int baseLineCount = dialogueText.textInfo.lineCount;
+        dialogueText.text = "";
+
         foreach (char c in line)
         {
             dialogueText.text += c;
+            dialogueText.ForceMeshUpdate();
+
+            int currentLineCount = dialogueText.textInfo.lineCount;
+            if (currentLineCount > baseLineCount)
+            {
+                dialogueText.text += "\n"; // Optional stabilization
+            }
+
             yield return new WaitForSeconds(typingSpeed);
         }
 
-        // Add continue indicator after typing finishes
         dialogueText.text += " ...";
-
-        Debug.Log("Finished typing line.");
         isTyping = false;
         lineFullyDisplayed = true;
     }
 
-    // Function to handle item collection
-    public void CollectItem(string itemName)
+    public void CollectItem(string displayName, string resourcePath)
     {
         if (currentInventoryIndex < 5)
         {
-            // Add item to inventory
-            inventory[currentInventoryIndex] = itemName;
+            inventory[currentInventoryIndex] = displayName;
             currentInventoryIndex++;
 
-            // Display item received message in the new panel
-            DisplayItemReceived(itemName);
+            // Make sure no panel is active before showing item
+            StartCoroutine(WaitUntilNoPanelThenShowItem(displayName, resourcePath));
         }
         else
         {
@@ -132,32 +149,43 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    // Display item received in the new item panel
-    private void DisplayItemReceived(string itemName)
+    private IEnumerator WaitUntilNoPanelThenShowItem(string displayName, string resourcePath)
     {
-        // Make sure itemPanel is active
-        itemPanel.SetActive(true);
-        itemReceivedText.text = $"{itemName} received"; // Display item name
+        yield return new WaitUntil(() => !AnyPanelActive);
 
-        // Load the image dynamically based on itemName from the Resources folder
-        Sprite itemImage = Resources.Load<Sprite>(itemName); // Load sprite with the same name as itemName
+        DisplayItemReceived(displayName, resourcePath);
+    }
+
+    private void DisplayItemReceived(string displayName, string resourcePath)
+    {
+        itemPanel.SetActive(true);
+        itemReceivedText.text = $"{displayName} received";
+
+        Sprite itemImage = Resources.Load<Sprite>(resourcePath);
         if (itemImage != null)
         {
-            itemReceivedImage.sprite = itemImage; // Display item image
+            itemReceivedImage.sprite = itemImage;
         }
         else
         {
-            Debug.LogWarning("Item image not found for: " + itemName);
+            Debug.LogWarning("Item image not found at: " + resourcePath);
         }
 
-        // Optionally hide the itemPanel after a short time
         StartCoroutine(HideItemPanel());
     }
 
-    // Hide itemPanel after a brief delay
     private IEnumerator HideItemPanel()
     {
-        yield return new WaitForSeconds(2f); // Keep it on screen for 2 seconds
+        yield return new WaitForSeconds(2f);
         itemPanel.SetActive(false);
+
+        // Check for queued dialogue after hiding item panel
+        if (hasQueuedMessage && !AnyPanelActive)
+        {
+            string messageToShow = queuedMessage;
+            queuedMessage = null;
+            hasQueuedMessage = false;
+            ShowMessage(messageToShow);
+        }
     }
 }
