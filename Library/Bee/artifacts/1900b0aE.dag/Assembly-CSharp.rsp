@@ -471,6 +471,7 @@
 "Assets/Scripts/ClickableObject.cs"
 "Assets/Scripts/DialogueManager.cs"
 "Assets/Scripts/DummyScript.cs"
+"Assets/Scripts/ItemGiver.cs"
 -langversion:9.0
 /deterministic
 /optimize+

@@ -68,6 +68,15 @@ public class ClickableObject : MonoBehaviour
         }
 
         DialogueManager.Instance.ShowMessage(message);
+
+        ItemGiver itemGiver = GetComponent<ItemGiver>();
+        
+        if (itemGiver != null) {
+            itemGiver.TryGiveItem();
+        }
+        else {
+            Debug.Log("No item to collect here.");
+        }
     }
 
     private System.Collections.IEnumerator LoadSceneAfterDialogue(string sceneName)
