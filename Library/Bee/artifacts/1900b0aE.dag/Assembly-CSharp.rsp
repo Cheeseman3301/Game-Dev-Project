@@ -470,6 +470,7 @@
 -analyzer:"D:/Momin/Unity/UnityEditor/6000.0.47f1-x86_64/Editor/Data/Tools/Unity.SourceGenerators/Unity.UIToolkit.SourceGenerator.dll"
 "Assets/Scripts/ClickableObject.cs"
 "Assets/Scripts/DialogueManager.cs"
+"Assets/Scripts/DummyScript.cs"
 -langversion:9.0
 /deterministic
 /optimize+

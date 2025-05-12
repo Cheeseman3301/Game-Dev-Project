@@ -3,16 +3,24 @@ using UnityEngine.SceneManagement;
 
 public class ClickableObject : MonoBehaviour
 {
-    public string messageToDisplay;  // Message shown in dialogue
-    public string objectID;          // Identifier for object (e.g. "Door", "Drawer", etc.)
+    public string messageToDisplay;  // Optional fallback message from Inspector
+    public string objectID;          // Optional identifier for the object
 
-    private void OnMouseDown()
-    {
+    private void OnMouseDown() {
 
-        if (DialogueManager.Instance.IsDialogueActive())
-        return;
+        Debug.Log($"Clicked on: {gameObject.name}");
 
-       string message = "";
+        if (DialogueManager.Instance == null) {
+            Debug.LogError("DialogueManager.Instance is null!");
+            return;
+        }
+
+        // Prevent clicking if dialogue is active or still typing
+        if (DialogueManager.Instance.IsDialogueActive || DialogueManager.Instance.IsTyping)
+            return;
+
+        string message = "";
+
 
         switch (gameObject.name)
         {
@@ -39,8 +47,9 @@ public class ClickableObject : MonoBehaviour
                 break;
             case "Door":
                 message = "You slowly reach for the handle...";
-                SceneManager.LoadScene("NextSceneName"); // Replace with your actual scene name
-                break;
+                DialogueManager.Instance.ShowMessage(message);
+                StartCoroutine(LoadSceneAfterDialogue("NextSceneName")); // Replace with actual name
+                return;
             case "Cabinet":
                 message = "You open the cabinet. Rows of strange bottles line the shelves.";
                 break;
@@ -50,11 +59,21 @@ public class ClickableObject : MonoBehaviour
             case "Desk":
                 message = "The desk is cluttered. A diary lies open to a torn page.";
                 break;
+            case "Painting":
+                message = "Behind the painting, there’s a small hole in the wall. Something’s inside.";
+                break;
             default:
-                message = messageToDisplay; // fallback message if set in Inspector
+                message = messageToDisplay; // Fallback from Inspector if no match
                 break;
         }
 
         DialogueManager.Instance.ShowMessage(message);
+    }
+
+    private System.Collections.IEnumerator LoadSceneAfterDialogue(string sceneName)
+    {
+        // Wait until dialogue is finished before transitioning
+        yield return new WaitUntil(() => !DialogueManager.Instance.IsDialogueActive && !DialogueManager.Instance.IsTyping);
+        SceneManager.LoadScene(sceneName);
     }
 }
