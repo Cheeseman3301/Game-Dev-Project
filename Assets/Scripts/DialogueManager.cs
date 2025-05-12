@@ -24,6 +24,11 @@ public class DialogueManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+
+         // Ensure dialogue panel is hidden at startup
+        if (dialoguePanel != null) {
+            dialoguePanel.SetActive(false);
+        }       
     }
 
     void Update()
@@ -86,7 +91,7 @@ public class DialogueManager : MonoBehaviour
             dialogueText.text += c;
             yield return new WaitForSeconds(typingSpeed);
         }
-
+        
         Debug.Log("Finished typing line.");
         isTyping = false;
         lineFullyDisplayed = true;
