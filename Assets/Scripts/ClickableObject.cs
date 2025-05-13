@@ -60,7 +60,7 @@ public class ClickableObject : MonoBehaviour
                 message = "The desk is cluttered.\nA diary lies open to a torn page.";
                 break;
             case "Painting":
-                message = "Behind the painting, there’s a small hole in the wall.\nSomething’s inside.";
+                message = "Behind the painting, there is a small hole in the wall.\nSomething lies inside.";
                 break;
             default:
                 message = messageToDisplay; // Fallback from Inspector if no match

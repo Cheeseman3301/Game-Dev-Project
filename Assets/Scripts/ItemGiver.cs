@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class ItemGiver : MonoBehaviour
 {
-    public string itemName;  // Should match the name of the image in Resources/ClueImages/
+    [Tooltip("Name of the image file in Resources/ClueImages/ (without extension)")]
+    public string itemName;  // Example: "USB Stick" if the image is Resources/ClueImages/USB Stick.png
 
     private bool itemGiven = false;
 
@@ -10,18 +11,21 @@ public class ItemGiver : MonoBehaviour
     {
         if (itemGiven)
         {
-            Debug.Log("Item already given from this object.");
+            Debug.Log($"Item '{itemName}' already given from {gameObject.name}.");
             return;
         }
 
-        if (!string.IsNullOrEmpty(itemName))
+        if (string.IsNullOrEmpty(itemName))
         {
-            DialogueManager.Instance.CollectItem(itemName);
-            itemGiven = true;
+            Debug.LogWarning($"Item name is not set on {gameObject.name}.");
+            return;
         }
-        else
-        {
-            Debug.LogWarning("Item name is not set on ItemGiver.");
-        }
+
+        // Prepend the folder path to match Resources folder structure
+        string fullResourcePath = $"ClueImages/{itemName}";
+
+        // Pass both display name and resource path
+        DialogueManager.Instance.CollectItem(itemName, fullResourcePath);
+        itemGiven = true;
     }
 }
